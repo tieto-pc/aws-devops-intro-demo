@@ -5,6 +5,7 @@
 - [Introduction](#introduction)
 - [High Level Demonstration Steps](#high-level-demonstration-steps)
 - [Prerequisites](#prerequisites)
+- [Upload Your SSH Public Key for Using CodeCommit](#upload-your-ssh-public-key-for-using-codecommit)
 - [CodeCommit](#codecommit)
 - [CodeBuild](#codebuild)
 - [Demonstration Manuscript](#demonstration-manuscript)
@@ -28,8 +29,15 @@ The demonstration has the following high level steps:
 
 # Prerequisites
 
-You need to deploy the [aws-ecs-fargate-demo](https://github.com/tieto-pc/aws-ecs-fargate-demo) project first since it provides the ECR that this DevOps demonstration uses when it pushes the new Docker image to ECR.
+- You need to deploy the [aws-ecs-fargate-demo](https://github.com/tieto-pc/aws-ecs-fargate-demo) project first since it provides the ECR that this DevOps demonstration uses when it pushes the new Docker image to ECR.
+- You need to upload your SSH public key to AWS as instructed in chapter "Upload Your SSH Public Key for Using CodeCommit".
 
+
+# Upload Your SSH Public Key for Using CodeCommit
+
+Follow instructions given in [Setup for HTTPS Users Using Git Credentials](https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-gc.html). What you have to do is:
+- Upload the SSH public key to your IAM user.
+- Edit Local SSH Configuration: Add the SSH Key ID and the ssh private key reference to your ssh config file.
 
 
 # CodeCommit
@@ -43,4 +51,24 @@ TODO
 
 # Demonstration Manuscript
 
-TODO
+1. Do prerequisites as instructed above in chapter "Prerequisites".
+2. Install [Terraform](https://www.terraform.io/). You might also like to add Terraform support for your favorite editor (e.g. there is a Terraform extension for VS Code).
+3. Install [AWS command line interface](https://aws.amazon.com/cli).
+4. Clone this project: git clone https://github.com/tieto-pc/aws-devops-intro-demo.git
+5. Configure the terraform backend as instructed in chapter "Terraform Backend". Create AWS credentials file as instructed in the same chapter.
+6. Open console in [dev](terraform/envs/dev) folder. Give commands
+   1. ```terraform init``` => Initializes the Terraform backend state.
+   2. ```terraform get``` => Gets the terraform modules of this project.
+   3. ```terraform plan``` => Gives the plan regarding the changes needed to make to your infra. **NOTE**: always read the plan carefully!
+   4. ```terraform apply``` => Creates the delta between the current state in the infrastructure and your new state definition in the Terraform configuration files.
+   5. You should now have CodeCommit repository and CodeBuild environments. Check these services in AWS Console.
+7. Configure the CodeCommit repository to the Java app's remote:
+```text
+[remote "codecommit"]
+	url = ssh://<CODE-COMMIT-REPO> (as given in the repository page)
+	fetch = +refs/heads/*:refs/remotes/codecommit/*
+```
+8. Push the Java app git master branch to the new CodeCommit repository: git push codecommit master.
+9. Check in AWS CodeCommit Dashboard that you see the code there.
+
+
