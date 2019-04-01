@@ -42,7 +42,8 @@ Follow instructions given in [Setup for HTTPS Users Using Git Credentials](https
 
 # CodeCommit
 
-TODO
+CodeCommit is basically just a Git repository. We have created the repository using Terraform. The repository provides instructions how to clone/push source code from/to repository. CodeBuild uses CodeCommit repository to fetch source code and build instructions.
+
 
 # CodeBuild
 
