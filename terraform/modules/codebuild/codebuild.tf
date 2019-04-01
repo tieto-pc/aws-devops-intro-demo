@@ -3,6 +3,8 @@ locals {
   my_env = "${var.prefix}-${var.env}"
 }
 
+# Adopted from Terraform template: https://www.terraform.io/docs/providers/aws/r/codebuild_project.html
+
 resource "aws_s3_bucket" "codebuild_s3_cache_bucket" {
   bucket = "${local.my_name}-cache-bucket"
   acl    = "private"
@@ -44,5 +46,53 @@ EOF
     Region = "${var.region}"
     Terraform = "true"
   }
+}
+
+
+# See: https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html
+resource "aws_iam_role_policy" "example" {
+  role = "${aws_iam_role.codebuild_iam_role.name}"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateNetworkInterface",
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeVpcs"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "${aws_s3_bucket.codebuild_s3_cache_bucket.arn}",
+        "${aws_s3_bucket.codebuild_s3_cache_bucket.arn}/*"
+      ]
+    }
+  ]
+}
+POLICY
 }
 
