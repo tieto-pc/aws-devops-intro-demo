@@ -7,6 +7,13 @@ module "codecommit" {
   prefix          = "${var.prefix}"
   env             = "${var.env}"
   region          = "${var.region}"
+}
 
+
+module "codebuild" {
+  source          = "../codebuild"
+  prefix          = "${var.prefix}"
+  env             = "${var.env}"
+  region          = "${var.region}"
 }
 
