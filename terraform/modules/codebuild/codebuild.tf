@@ -1,6 +1,6 @@
 locals {
   my_name = "${var.prefix}-${var.env}-codebuild"
-  my_env = "${var.prefix}-${var.env}"
+  my_env  = "${var.prefix}-${var.env}"
 }
 
 # Adopted from Terraform template: https://www.terraform.io/docs/providers/aws/r/codebuild_project.html
@@ -10,12 +10,12 @@ resource "aws_s3_bucket" "codebuild_s3_cache_bucket" {
   acl    = "private"
 
   tags {
-    Name = "${local.my_name}-cache-bucket"
+    Name        = "${local.my_name}-cache-bucket"
     Environment = "${local.my_env}"
-    Prefix = "${var.prefix}"
-    Env = "${var.env}"
-    Region = "${var.region}"
-    Terraform = "true"
+    Prefix      = "${var.prefix}"
+    Env         = "${var.env}"
+    Region      = "${var.region}"
+    Terraform   = "true"
   }
 }
 
@@ -39,21 +39,21 @@ resource "aws_iam_role" "codebuild_iam_role" {
 EOF
 
   tags {
-    Name = "${local.my_name}-iam-role"
+    Name        = "${local.my_name}-iam-role"
     Environment = "${local.my_env}"
-    Prefix = "${var.prefix}"
-    Env = "${var.env}"
-    Region = "${var.region}"
-    Terraform = "true"
+    Prefix      = "${var.prefix}"
+    Env         = "${var.env}"
+    Region      = "${var.region}"
+    Terraform   = "true"
   }
 }
 
 
-# See: https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html
-resource "aws_iam_role_policy" "example" {
+# Removed ec2 rights, let's see if they are actually needed for the service.
+resource "aws_iam_role_policy" "codebuild_iam_role_policy" {
   role = "${aws_iam_role.codebuild_iam_role.name}"
 
-  policy = <<POLICY
+  policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -71,19 +71,6 @@ resource "aws_iam_role_policy" "example" {
     {
       "Effect": "Allow",
       "Action": [
-        "ec2:CreateNetworkInterface",
-        "ec2:DescribeDhcpOptions",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DeleteNetworkInterface",
-        "ec2:DescribeSubnets",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeVpcs"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
         "s3:*"
       ],
       "Resource": [
@@ -93,6 +80,43 @@ resource "aws_iam_role_policy" "example" {
     }
   ]
 }
-POLICY
+EOF
 }
 
+
+# Not using any vpc as in the original example.
+resource "aws_codebuild_project" "codebuild_project" {
+  name          = "${local.my_name}-project"
+  description   = "CodeBuild demo project"
+  build_timeout = "60"
+  service_role  = "${aws_iam_role.codebuild_iam_role.arn}"
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  cache {
+    type     = "S3"
+    location = "${aws_s3_bucket.codebuild_s3_cache_bucket.bucket}"
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:1.0"
+    type                        = "LINUX_CONTAINER"
+    image_pull_credentials_type = "CODEBUILD"
+  }
+
+  source {
+    type = "CODEPIPELINE"
+  }
+
+  tags {
+    Name        = "${local.my_name}-codebuild-project"
+    Environment = "${local.my_env}"
+    Prefix      = "${var.prefix}"
+    Env         = "${var.env}"
+    Region      = "${var.region}"
+    Terraform   = "true"
+  }
+}
