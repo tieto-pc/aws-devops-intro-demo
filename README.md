@@ -6,14 +6,17 @@
 - [High Level Demonstration Steps](#high-level-demonstration-steps)
 - [Prerequisites](#prerequisites)
 - [Upload Your SSH Public Key for Using CodeCommit](#upload-your-ssh-public-key-for-using-codecommit)
+- [Developing With New Cloud Services](#developing-with-new-cloud-services)
 - [CodeCommit](#codecommit)
+- [Local CodeBuild](#local-codebuild)
 - [CodeBuild](#codebuild)
+- [CodePipeline](#codepipeline)
 - [Demonstration Manuscript](#demonstration-manuscript)
 
 
 # Introduction
 
-This project demonstrates how to setup and use AWS DevOps tools [CodeCommit](https://aws.amazon.com/codecommit/) (a Git repository) and [CodeBuild](https://aws.amazon.com/codebuild/) (a Continous Integration tool). All artefacts are created as infrastructure as code (IaC) using [Terraform](https://www.terraform.io/). 
+This project demonstrates how to setup and use AWS DevOps tools [CodeCommit](https://aws.amazon.com/codecommit/) (a Git repository), [CodeBuild](https://aws.amazon.com/codebuild/) (a Continous Integration tool) and [CodePipeline](https://aws.amazon.com/codepipeline/) (a Continuous Develivery pipeline). All artefacts are created as infrastructure as code (IaC) using [Terraform](https://www.terraform.io/). 
 
 # High Level Demonstration Steps
 
@@ -40,12 +43,28 @@ Follow instructions given in [Setup for HTTPS Users Using Git Credentials](https
 - Edit Local SSH Configuration: Add the SSH Key ID and the ssh private key reference to your ssh config file.
 
 
+# Developing With New Cloud Services
+
+It is a best practice that if you are creating infrastructure as code using new cloud services it is usually a wise move to create the cloud entities first manually using the portal, then examine how the cloud provider's wizards (behind the scene) created the entities using the services and then try to create the same entities using IaC. CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration. Once I understood how everything is working I created the same entities using IaC.
+
+
 # CodeCommit
 
 CodeCommit is basically just a Git repository. We have created the repository using Terraform. The repository provides instructions how to clone/push source code from/to repository. CodeBuild uses CodeCommit repository to fetch source code and build instructions.
 
 
+# Local CodeBuild
+
+When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, wait that CodePipeline gets triggered, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). TODO.
+
+
+
+
 # CodeBuild
+
+TODO
+
+# CodePipeline
 
 TODO
 
