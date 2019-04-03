@@ -55,7 +55,17 @@ CodeCommit is basically just a Git repository. We have created the repository us
 
 # Local CodeBuild
 
-When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, wait that CodePipeline gets triggered, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). TODO.
+When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, wait that CodePipeline gets triggered, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). It was pretty cool. You just had to clone the the local codebuild repo, build the Docker image and you are good to go to use that Docker image as your local CodeBuild service. I cloned the demo repo and ran the local CodeBuild and it succesfully build the demo app and created the artifact into my local artifact directory (you have to create the directory, of course - see instructions in the link above).
+
+NOTE:
+- You have to create aws-scripts directory in the root of this project and download the codebuild_build.sh file there.
+- The codebuild_build.sh is needed by script run-local-codebuild.sh (local CodeBuild tool).
+- I'm not including the aws script in this repo just in case that no-one complains that I have proprietary components in our repo. You can download the script that should be in this directory from AWS:
+- See: https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/
+- Download the script like: wget https://raw.githubusercontent.com/aws/aws-codebuild-docker-images/master/local_builds/codebuild_build.sh
+
+After the AWS provided demo I tried the local CodeBuild tool with my own project [java-simple-rest-demo-app
+](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm about to use as a demo app when demonstrating the AWS PipeLine tools. Holy Moly, it worked (except I got the exact same error "UPLOAD_ARTIFACTS State: FAILED => no matching artifact paths found" as with real AWS service - but at least this error is now easier to debug locally, but at least the compile, build, run unit tests phases went smoothly).
 
 
 
