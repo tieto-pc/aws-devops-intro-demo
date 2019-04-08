@@ -114,7 +114,13 @@ The CodeBuild module has two projects:
 
 # CodePipeline
 
-TODO
+The CodePipeline has three stages:
+
+1. Source stage which pulls sources from CodeCommit.
+
+2. Build and test stage which builds the app jar (using CodeBuild build and test project) and then uploads the application jar into S3 artifact bucket.
+
+3. Docker image stage which bakes the Docker image (using CodeBuild Docker image project).
 
 
 # Demonstration Manuscript
