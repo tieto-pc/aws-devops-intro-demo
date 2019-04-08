@@ -45,7 +45,21 @@ Follow instructions given in [Setup for HTTPS Users Using Git Credentials](https
 
 # Developing With New Cloud Services
 
-It is a best practice that if you are creating infrastructure as code using new cloud services it is usually a wise move to create the cloud entities first manually using the portal, then examine how the cloud provider's wizards (behind the scene) created the entities using the services and then try to create the same entities using IaC. CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration. Once I understood how everything is working I created the same entities using IaC.
+Let's talk about how to create new cloud services as infrastructure as code.
+
+It is a best practice that if you are creating infrastructure as code using new cloud services it is usually a wise move to create the cloud entities first manually using the portal, then examine how the cloud provider's wizards (behind the scene) created the entities using the services and then try to create the same entities using IaC. 
+
+CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration. Once I understood how everything is working I created the same entities using IaC.
+
+So, I created the AWS CodePipeline and CodeBuild manually and tested that I can build the demo Java application using the manual CodePipeline project. Once everything was working properly I exported the AWS CodePipeline and CodeBuild projects as CloudFormation stack json descriptions to a file:
+
+```bash
+AWS_PROFILE=YOUR-AWS-PROFILE aws codepipeline get-pipeline --name YOUR-MANUAL-CODEPIPELINE-PROJECT-NAME > manual-codepipeline-description.txt
+AWS_PROFILE=YOUR-AWS-PROFILE aws codebuild batch-get-projects --name YOUR-MANUAL-CODEBUILD-PROJECT-NAME --output json > manual-codebuild-description.txt
+```
+
+Now you have the descriptions of the manually created projects nicely in a file. Then convert the entities in those files to Terrafor resources.
+
 
 
 # CodeCommit
@@ -57,17 +71,18 @@ CodeCommit is basically just a Git repository. We have created the repository us
 
 When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, wait that CodePipeline gets triggered, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). It was pretty cool. You just had to clone the the local codebuild repo, build the Docker image and you are good to go to use that Docker image as your local CodeBuild service. I cloned the demo repo and ran the local CodeBuild and it succesfully build the demo app and created the artifact into my local artifact directory (you have to create the directory, of course - see instructions in the link above).
 
-NOTE:
-- You have to create aws-scripts directory in the root of this project and download the codebuild_build.sh file there.
-- The codebuild_build.sh is needed by script run-local-codebuild.sh (local CodeBuild tool).
-- I'm not including the aws script in this repo just in case that no-one complains that I have proprietary components in our repo. You can download the script that should be in this directory from AWS:
-- See: https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/
-- Download the script like: wget https://raw.githubusercontent.com/aws/aws-codebuild-docker-images/master/local_builds/codebuild_build.sh
+Instructions:
+- Go to project [java-simple-rest-demo-app](https://github.com/tieto-pc/java-simple-rest-demo-app).
+- Download the codebuild_build.sh file: 
+    - See: https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/
+    - Download the script: ```wget https://raw.githubusercontent.com/aws/aws-codebuild-docker-images/master/local_builds/codebuild_build.sh```
+- The codebuild_build.sh is needed by script [run-local-codebuild.sh](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/run-local-codebuild.sh) (local CodeBuild tool).
+- You need to create a build specification file for the CodeBuild: [buildspec.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/buildspec.yml) .
+- You need to create the build environment. I used [Ubuntu 18 Standard build environment Docker image](https://github.com/aws/aws-codebuild-docker-images/tree/master/ubuntu/standard/1.0). Build it, e.g. ```docker build -t aws/codebuild/ubuntu:18 . ```.
+- Once everything is ready try to run the local CodeBuild: ```./run-local-codebuild.sh```
 
 After the AWS provided demo I tried the local CodeBuild tool with my own project [java-simple-rest-demo-app
-](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm about to use as a demo app when demonstrating the AWS PipeLine tools. Holy Moly, it worked (except I got the exact same error "UPLOAD_ARTIFACTS State: FAILED => no matching artifact paths found" as with real AWS service - but at least this error is now easier to debug locally, but at least the compile, build, run unit tests phases went smoothly).
-
-
+](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm about to use as a demo app when demonstrating the AWS PipeLine tools. I had to debug the build specification a bit but finally I got it working. After the build was ok in local CodeBuild I verified that it works the same way in the real AWS CodeBuild service.
 
 
 # CodeBuild
