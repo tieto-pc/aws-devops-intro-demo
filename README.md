@@ -51,16 +51,16 @@ Let's talk about how to create new cloud services as infrastructure as code.
 
 It is a best practice that if you are creating infrastructure as code using new cloud services it is usually a wise move to create the cloud entities first manually using the portal, then examine how the cloud provider's wizards (behind the scene) created the entities using the services and then try to create the same entities using IaC. 
 
-CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration. Once I understood how everything is working I created the same entities using IaC.
+CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration.
 
-So, I created the AWS CodePipeline and CodeBuild manually and tested that I can build the demo Java application using the manual CodePipeline project. Once everything was working properly I exported the AWS CodePipeline and CodeBuild projects as CloudFormation stack json descriptions to a file:
+Once everything was working properly with the manually created services I exported the AWS CodePipeline and CodeBuild projects as CloudFormation stack json descriptions to a file:
 
 ```bash
 AWS_PROFILE=YOUR-AWS-PROFILE aws codepipeline get-pipeline --name YOUR-MANUAL-CODEPIPELINE-PROJECT-NAME > manual-codepipeline-description.txt
 AWS_PROFILE=YOUR-AWS-PROFILE aws codebuild batch-get-projects --name YOUR-MANUAL-CODEBUILD-PROJECT-NAME --output json > manual-codebuild-description.txt
 ```
 
-Now you have the descriptions of the manually created projects nicely in a file. Then convert the entities in those files to Terrafor resources.
+Now I had the descriptions of the manually created projects nicely in a file. Then I just converted the entities in those files into Terraform resources. This is a nice way to figure out what magic AWS Portal is doing behind the scene.
 
 
 

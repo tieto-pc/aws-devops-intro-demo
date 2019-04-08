@@ -33,6 +33,7 @@ module "codebuild" {
   env                     = "${var.env}"
   region                  = "${var.region}"
   codecommit_repo_http_url            = "${module.codecommit.codecommit_repo_http_url}"
+  codecommit_repo_arn                 = "${module.codecommit.codecommit_repo_arn}"
   s3_cache_bucket                     = "${module.s3.s3_cache_bucket}"
   s3_cache_bucket_arn                 = "${module.s3.s3_cache_bucket_arn}"
   s3_artifact_bucket                  = "${module.s3.s3_artifact_bucket}"
@@ -40,4 +41,25 @@ module "codebuild" {
   s3_log_bucket                       = "${module.s3.s3_log_bucket}"
   s3_log_bucket_arn                   = "${module.s3.s3_log_bucket_arn}"
   cloudwatch_codebuild_log_group_name = "${module.cloudwatch_logs.cloudwatch_codebuild_log_group_name}"
+}
+
+
+# The Pipeline DevOps tool.
+module "codepipeline" {
+  source                  = "../codepipeline"
+  prefix                  = "${var.prefix}"
+  env                     = "${var.env}"
+  region                  = "${var.region}"
+  codecommit_repo_arn                   = "${module.codecommit.codecommit_repo_arn}"
+  s3_cache_bucket                       = "${module.s3.s3_cache_bucket}"
+  s3_cache_bucket_arn                   = "${module.s3.s3_cache_bucket_arn}"
+  s3_artifact_bucket                    = "${module.s3.s3_artifact_bucket}"
+  s3_artifact_bucket_arn                = "${module.s3.s3_artifact_bucket_arn}"
+  s3_log_bucket                         = "${module.s3.s3_log_bucket}"
+  s3_log_bucket_arn                     = "${module.s3.s3_log_bucket_arn}"
+  cloudwatch_codebuild_log_group_name   = "${module.cloudwatch_logs.cloudwatch_codebuild_log_group_name}"
+  codebuild_build_and_test_project_arn  = "${module.codebuild.codebuild_build_and_test_project_arn}"
+  codecommit_repo_name                  = "${module.codecommit.codecommit_repo_name}"
+  codebuild_build_and_test_project_name = "${module.codebuild.codebuild_build_and_test_project_name}"
+
 }

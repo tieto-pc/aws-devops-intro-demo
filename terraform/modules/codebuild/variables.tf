@@ -2,6 +2,7 @@ variable "prefix" {}
 variable "env" {}
 variable "region" {}
 variable "codecommit_repo_http_url" {}
+variable "codecommit_repo_arn" {}
 variable "s3_cache_bucket" {}
 variable "s3_cache_bucket_arn" {}
 variable "s3_artifact_bucket" {}
