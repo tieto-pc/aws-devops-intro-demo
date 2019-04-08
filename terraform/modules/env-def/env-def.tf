@@ -18,21 +18,6 @@ module "cloudwatch_logs" {
 }
 
 
-# Service role that is used by AWS DevOps tools.
-module "service-role" {
-  source          = "../service-role"
-  prefix          = "${var.prefix}"
-  env             = "${var.env}"
-  region          = "${var.region}"
-  s3_cache_bucket                     = "${module.s3.s3_cache_bucket}"
-  s3_cache_bucket_arn                 = "${module.s3.s3_cache_bucket_arn}"
-  s3_artifact_bucket                  = "${module.s3.s3_artifact_bucket}"
-  s3_artifact_bucket_arn              = "${module.s3.s3_artifact_bucket_arn}"
-  s3_log_bucket                       = "${module.s3.s3_log_bucket}"
-  s3_log_bucket_arn                   = "${module.s3.s3_log_bucket_arn}"
-  cloudwatch_codebuild_log_group_name = "${module.cloudwatch_logs.cloudwatch_codebuild_log_group_name}"
-}
-
 # The Git code repository.
 module "codecommit" {
   source          = "../codecommit"
@@ -48,7 +33,6 @@ module "codebuild" {
   env                     = "${var.env}"
   region                  = "${var.region}"
   codecommit_repo_http_url            = "${module.codecommit.codecommit_repo_http_url}"
-  service_role_arn                    = "${module.service-role.service_role_arn}"
   s3_cache_bucket                     = "${module.s3.s3_cache_bucket}"
   s3_cache_bucket_arn                 = "${module.s3.s3_cache_bucket_arn}"
   s3_artifact_bucket                  = "${module.s3.s3_artifact_bucket}"
