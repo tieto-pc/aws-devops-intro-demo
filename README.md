@@ -9,6 +9,8 @@
 - [Developing With New Cloud Services](#developing-with-new-cloud-services)
 - [CodeCommit](#codecommit)
 - [Local CodeBuild](#local-codebuild)
+- [S3 Buckets and CloudWatch Logs](#s3-buckets-and-cloudwatch-logs)
+- [Service Role](#service-role)
 - [CodeBuild](#codebuild)
 - [CodePipeline](#codepipeline)
 - [Demonstration Manuscript](#demonstration-manuscript)
@@ -85,9 +87,30 @@ After the AWS provided demo I tried the local CodeBuild tool with my own project
 ](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm about to use as a demo app when demonstrating the AWS PipeLine tools. I had to debug the build specification a bit but finally I got it working. After the build was ok in local CodeBuild I verified that it works the same way in the real AWS CodeBuild service.
 
 
+# S3 Buckets and CloudWatch Logs
+
+I created three S3 buckets for the DevOps environment:
+- Caches (used by CodeBuild to cache builds).
+- Artifacts (used by CodePipeline to upload app jar for further phases).
+- Logs (for various logging purposes).
+
+I also created A CloudWatch Log group but I later realized that Terraform does not support at the moment the CloudWatch logsConfig configuration in CodeBuild projects - I left the log S3 and CloudWatch Log group to the Terraform modules anyway - maybe the support will come in the near future and I update the logsConfig to the CodeBuild then.
+
+
+# Service Role
+
+I created a Service role for CodeBuild. The role is injected to the CodeBuild module.
+
+
 # CodeBuild
 
-TODO
+The CodeBuild module has two projects:
+
+1. Build and test project which uses CodeCommit repo as the source and then calls the Java project's buildspec.yml build specification file to run the build and test process.
+
+2. Docker Image project which creates the Docker image and bakes into it the application jar that the previous CodeBuild project created.
+
+
 
 # CodePipeline
 

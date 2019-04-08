@@ -53,3 +53,6 @@ resource "aws_codebuild_project" "codebuild_build_and_test_project" {
     Terraform   = "true"
   }
 }
+
+
+# TODO: resource "aws_codebuild_project" "codebuild_bake_docker_image_project" {
