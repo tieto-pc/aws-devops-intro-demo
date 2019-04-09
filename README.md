@@ -2,6 +2,7 @@
 
 
 # Table of Contents  <!-- omit in toc -->
+- [WORK IN PROGRESS!](#work-in-progress)
 - [Introduction](#introduction)
 - [High Level Demonstration Steps](#high-level-demonstration-steps)
 - [Prerequisites](#prerequisites)
@@ -14,6 +15,12 @@
 - [CodeBuild](#codebuild)
 - [CodePipeline](#codepipeline)
 - [Demonstration Manuscript](#demonstration-manuscript)
+
+
+
+# WORK IN PROGRESS!
+
+I'm actively working with this project and it is not yet ready. Once the project is ready I remove this chapter.
 
 
 # Introduction
