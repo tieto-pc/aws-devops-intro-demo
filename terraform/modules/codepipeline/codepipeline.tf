@@ -43,6 +43,7 @@ resource "aws_iam_role_policy" "codepipeline_iam_role_policy" {
       "Effect": "Allow",
       "Action": [
         "codecommit:GitPull",
+        "codecommit:GetUploadStatus",
         "codecommit:CancelUploadArchive",
         "codecommit:GetBranch",
         "codecommit:GetCommit",
@@ -77,12 +78,12 @@ resource "aws_iam_role" "codepipeline_iam_role" {
 EOF
 
   tags {
-    Name = "${local.my_name}-iam-role"
-    Deployment = "${local.my_deployment}"
-    Prefix = "${var.prefix}"
+    Name        = "${local.my_name}-iam-role"
+    Deployment  = "${local.my_deployment}"
+    Prefix      = "${var.prefix}"
     Environment = "${var.env}"
-    Region = "${var.region}"
-    Terraform = "true"
+    Region      = "${var.region}"
+    Terraform   = "true"
   }
 
 }

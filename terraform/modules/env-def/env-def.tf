@@ -28,6 +28,7 @@ module "codecommit" {
   prefix          = "${var.prefix}"
   env             = "${var.env}"
   region          = "${var.region}"
+  codepipeline_project_arn  = "${module.codepipeline.codepipeline_project_arn}"
 }
 
 # The Build DevOps tool.
