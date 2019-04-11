@@ -46,6 +46,12 @@ locals {
   my_env                    = "dev"
   # Use consistent prefix, e.g. <cloud-provider>-<demo-target/purpose>-demo, e.g. aws-ecs-demo
   my_prefix                 = "devopsintro"
+  # ECR Registry name to push the Docker image created in this demo.
+  # We assume that it is in the same AWS account and the same region.
+  my_ecr_docker_registry_name    = "aws-ecs-demo-dev-ecr-java-crm-demo"
+  # We use the https://github.com/tieto-pc/java-simple-rest-demo-app as demo app
+  my_docker_app_image_name       = "tieto-pc/java-devops-crm-demo"
+
 }
 
 provider "aws" {
@@ -55,10 +61,12 @@ provider "aws" {
 
 # Here we inject our values to the environment definition module which creates all actual resources.
 module "env-def" {
-  source   = "../../modules/env-def"
-  prefix   = "${local.my_prefix}"
-  env      = "${local.my_env}"
-  region   = "${local.my_region}"
+  source            = "../../modules/env-def"
+  prefix            = "${local.my_prefix}"
+  env               = "${local.my_env}"
+  region            = "${local.my_region}"
+  ecr_registry_name = "${local.my_ecr_docker_registry_name}"
+  docker_app_image_name = "${local.my_docker_app_image_name}"
 
 }
 

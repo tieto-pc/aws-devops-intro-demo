@@ -1,6 +1,6 @@
 locals {
   my_name = "${var.prefix}-${var.env}-codepipeline"
-  my_env = "${var.prefix}-${var.env}"
+  my_deployment = "${var.prefix}-${var.env}"
 }
 
 
@@ -20,6 +20,10 @@ resource "aws_iam_role_policy" "codepipeline_iam_role_policy" {
         "s3:*"
       ],
       "Resource": [
+        "${var.s3_cache_bucket_arn}",
+        "${var.s3_cache_bucket_arn}/*",
+        "${var.s3_log_bucket_arn}",
+        "${var.s3_log_bucket_arn}/*",
         "${var.s3_artifact_bucket_arn}",
         "${var.s3_artifact_bucket_arn}/*"
       ]
@@ -30,7 +34,10 @@ resource "aws_iam_role_policy" "codepipeline_iam_role_policy" {
         "codebuild:BatchGetBuilds",
         "codebuild:StartBuild"
       ],
-      "Resource": "${var.codebuild_build_and_test_project_arn}"
+      "Resource": [
+        "${var.codebuild_build_and_test_project_arn}",
+        "${var.codebuild_build_docker_image_project_arn}"
+      ]
     },
     {
       "Effect": "Allow",
@@ -70,12 +77,12 @@ resource "aws_iam_role" "codepipeline_iam_role" {
 EOF
 
   tags {
-    Name        = "${local.my_name}-iam-role"
-    Environment = "${local.my_env}"
-    Prefix      = "${var.prefix}"
-    Env         = "${var.env}"
-    Region      = "${var.region}"
-    Terraform   = "true"
+    Name = "${local.my_name}-iam-role"
+    Deployment = "${local.my_deployment}"
+    Prefix = "${var.prefix}"
+    Environment = "${var.env}"
+    Region = "${var.region}"
+    Terraform = "true"
   }
 
 }
@@ -84,6 +91,7 @@ EOF
 resource "aws_codepipeline" "codepipeline_project" {
   name = "${local.my_name}-project"
   role_arn = "${aws_iam_role.codepipeline_iam_role.arn}"
+
 
   artifact_store {
     type = "S3"
@@ -143,9 +151,30 @@ resource "aws_codepipeline" "codepipeline_project" {
 
       configuration = {
         BucketName = "${var.s3_artifact_bucket}"
-        Extract    = "true"
-        ObjectKey  = "app-jar"
+        Extract = "true"
+        ObjectKey = "app-jar"
       }
     }
   }
+
+  ########## Build Docker image stage #########
+  stage {
+    name = "${local.my_name}-build-docker-image-stage"
+
+    action {
+      name = "${local.my_name}-build-docker-image-stage"
+      category = "Build"
+      owner = "AWS"
+      provider = "CodeBuild"
+      input_artifacts = [
+        "source-artifact"]
+      version = "1"
+
+      configuration = {
+        ProjectName = "${var.codebuild_build_docker_image_project_name}"
+      }
+    }
+
+  }
+
 }

@@ -10,3 +10,6 @@ variable "s3_artifact_bucket_arn" {}
 variable "s3_log_bucket" {}
 variable "s3_log_bucket_arn" {}
 variable "cloudwatch_codebuild_log_group_name" {}
+variable "ecr_registry_name" {}
+variable "aws_account_id" {}
+variable "docker_app_image_name" {}

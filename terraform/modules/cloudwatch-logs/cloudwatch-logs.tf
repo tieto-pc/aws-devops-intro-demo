@@ -1,6 +1,6 @@
 locals {
-  my_name = "${var.prefix}-${var.env}-codebuild"
-  my_env  = "${var.prefix}-${var.env}"
+  my_name       = "${var.prefix}-${var.env}-codebuild"
+  my_deployment = "${var.prefix}-${var.env}"
 }
 
 resource "aws_cloudwatch_log_group" "cloudwatch_codebuild_log_group" {
@@ -8,9 +8,9 @@ resource "aws_cloudwatch_log_group" "cloudwatch_codebuild_log_group" {
 
   tags {
     Name        = "${local.my_name}-codebuild-logs"
-    Environment = "${local.my_env}"
+    Deployment  = "${local.my_deployment}"
     Prefix      = "${var.prefix}"
-    Env         = "${var.env}"
+    Environment = "${var.env}"
     Region      = "${var.region}"
     Terraform   = "true"
   }

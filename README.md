@@ -86,7 +86,7 @@ Instructions:
     - See: https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/
     - Download the script: ```wget https://raw.githubusercontent.com/aws/aws-codebuild-docker-images/master/local_builds/codebuild_build.sh```
 - The codebuild_build.sh is needed by script [run-local-codebuild.sh](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/run-local-codebuild.sh) (local CodeBuild tool).
-- You need to create a build specification file for the CodeBuild: [buildspec.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/buildspec.yml) .
+- You need to create a build specification file for the CodeBuild: [buildspec_build_and_test.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/buildspec_build_and_test.yml) .
 - You need to create the build environment. I used [Ubuntu 18 Standard build environment Docker image](https://github.com/aws/aws-codebuild-docker-images/tree/master/ubuntu/standard/1.0). Build it, e.g. ```docker build -t aws/codebuild/ubuntu:18 . ```.
 - Once everything is ready try to run the local CodeBuild: ```./run-local-codebuild.sh```
 
