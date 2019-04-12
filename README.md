@@ -2,7 +2,6 @@
 
 
 # Table of Contents  <!-- omit in toc -->
-- [WORK IN PROGRESS!](#work-in-progress)
 - [Introduction](#introduction)
 - [High Level Demonstration Steps](#high-level-demonstration-steps)
 - [Prerequisites](#prerequisites)
@@ -11,21 +10,15 @@
 - [CodeCommit](#codecommit)
 - [Local CodeBuild](#local-codebuild)
 - [S3 Buckets and CloudWatch Logs](#s3-buckets-and-cloudwatch-logs)
-- [Service Role](#service-role)
 - [CodeBuild](#codebuild)
 - [CodePipeline](#codepipeline)
 - [Demonstration Manuscript](#demonstration-manuscript)
 
 
-
-# WORK IN PROGRESS!
-
-I'm actively working with this project and it is not yet ready. Once the project is ready I remove this chapter.
-
-
 # Introduction
 
 This project demonstrates how to setup and use AWS DevOps tools [CodeCommit](https://aws.amazon.com/codecommit/) (a Git repository), [CodeBuild](https://aws.amazon.com/codebuild/) (a Continous Integration tool) and [CodePipeline](https://aws.amazon.com/codepipeline/) (a Continuous Develivery pipeline). All artefacts are created as infrastructure as code (IaC) using [Terraform](https://www.terraform.io/). 
+
 
 # High Level Demonstration Steps
 
@@ -34,7 +27,8 @@ The demonstration has the following high level steps:
 1. The demonstration creates a [CodeCommit](https://aws.amazon.com/codecommit/) repository.
 2. The demonstration uses code in an existing Github project - [java-simple-rest-demo-app
 ](https://github.com/tieto-pc/java-simple-rest-demo-app) and pushes the code to the AWS CodeCommit repository (we could have used the original Github repository but steps #1-#2 are used for demonstration purposes).
-3. The demonstration builds the Java application using [CodeBuild](https://aws.amazon.com/codebuild/). CodeBuild also runs unit tests and then builds the Docker image from the Java application and pushes the new Docker image to AWS [ECR](https://aws.amazon.com/ecr/).
+3. The demonstration builds the Java application using [CodeBuild](https://aws.amazon.com/codebuild/). CodeBuild also runs unit tests and then builds the Docker image from the Java application and pushes the new Docker image to AWS [ECR](https://aws.amazon.com/ecr/) - demonstration [aws-ecs-fargate-demo
+](https://github.com/tieto-pc/aws-ecs-fargate-demo) provides the ECR registry.
 4. The new Docker image can be used to deploy new version of the application to [aws-ecs-fargate-demo
 ](https://github.com/tieto-pc/aws-ecs-fargate-demo) which uses the Docker image from the AWS ECR registry.
 
@@ -42,7 +36,10 @@ The demonstration has the following high level steps:
 # Prerequisites
 
 - You need to deploy the [aws-ecs-fargate-demo](https://github.com/tieto-pc/aws-ecs-fargate-demo) project first since it provides the ECR that this DevOps demonstration uses when it pushes the new Docker image to ECR.
-- You need to upload your SSH public key to AWS as instructed in chapter "Upload Your SSH Public Key for Using CodeCommit".
+- You need to clone the Java example project [java-simple-rest-demo-app
+](https://github.com/tieto-pc/java-simple-rest-demo-app) and push the code to CodeCommit for the demonstration.
+- You need to upload your SSH public key to AWS as instructed in chapter "Upload Your SSH Public Key for Using CodeCommit". See next chapter for further details for this prerequisite.
+
 
 
 # Upload Your SSH Public Key for Using CodeCommit
@@ -54,11 +51,11 @@ Follow instructions given in [Setup for HTTPS Users Using Git Credentials](https
 
 # Developing With New Cloud Services
 
-Let's talk about how to create new cloud services as infrastructure as code.
+Let's talk about how to create new cloud services as infrastructure as code before we continue.
 
 It is a best practice that if you are creating infrastructure as code using new cloud services it is usually a wise move to create the cloud entities first manually using the portal, then examine how the cloud provider's wizards (behind the scene) created the entities using the services and then try to create the same entities using IaC. 
 
-CodeCommit part of this demonstration was so simple that I just created it using Terraform. But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration.
+CodeCommit part of this demonstration was so simple that I just created it using Terraform (except the role and policy - more about that later). But to understand CodeBuild and CodePipeline better I first created an AWS CodePipeline spec (and CodeBuild) using AWS Portal, and used the manual pipeline to build the Java application I'm using in this demonstration.
 
 Once everything was working properly with the manually created services I exported the AWS CodePipeline and CodeBuild projects as CloudFormation stack json descriptions to a file:
 
@@ -69,29 +66,36 @@ AWS_PROFILE=YOUR-AWS-PROFILE aws codebuild batch-get-projects --name YOUR-MANUAL
 
 Now I had the descriptions of the manually created projects nicely in a file. Then I just converted the entities in those files into Terraform resources. This is a nice way to figure out what magic AWS Portal is doing behind the scene.
 
+Of course this was a happy day scenario. In real life there are always bits and pieces missing. The portal wizards create all kinds of stuff behind the scenes that you have to figure out yourself. One example. When I had the automated CodePipeLine project and CodeBuild projects ready and I was testing the pipeline I was wondering why in the pipeline created using the portal wizard was automatically triggered but my pipeline created using Terraform IaC was not. Consult the book of knowledge - Google - and I got the answer: [Start a Pipeline Execution in CodePipeline](https://docs.aws.amazon.com/codepipeline/latest/userguide/pipelines-about-starting.html): *"When you use the console to create a pipeline that has a CodeCommit source repository or Amazon S3 source bucket, CodePipeline creates an Amazon CloudWatch Events rule that starts your pipeline when the source changes."* So, the portal wizards create all kinds of service roles, policies and triggering mechanisms to make your life easier when you are creating the service entitites using the portal. Portal makes things often so easy that some cloud developers create the whole cloud native system using the portal - big mistake. I once audited one customer big data system that was created by portal - no documentation how the system was created, no way to reproduce the equivalent system for development or testing. The only way to make a reproducable cloud system is to use infrastructure as code. 
+
+So, the lesson of the story is: Use the portal to explore and learn new cloud services, but create the final system using infrastructure as code. In the example above I used the portal to see what kind of triggering mechanism was created by the portal wizard and then I created the similar mechanism using Terraform code.
 
 
 # CodeCommit
 
-CodeCommit is basically just a Git repository. We have created the repository using Terraform. The repository provides instructions how to clone/push source code from/to repository. CodeBuild uses CodeCommit repository to fetch source code and build instructions.
+The [codecommit terraform module](terraform/modules/codecommit) hosts the [CodeCommit](https://aws.amazon.com/codecommit/) repository and the triggering mechanism.
+
+CodeCommit is basically just a Git repository. I have created the repository using Terraform. The repository provides instructions how to clone/push source code from/to repository. CodeBuild uses CodeCommit repository to fetch source code and build instructions.
+
+I added into the codecommit module also the triggering mechanism I talked about in the previous chapter. The triggering mechanism is basically just a CloudWatch Event Rule that gets triggered when a new commit is pushed into the repository. Then the rule triggers the CodePipeline project.
 
 
 # Local CodeBuild
 
-When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, wait that CodePipeline gets triggered, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). It was pretty cool. You just had to clone the the local codebuild repo, build the Docker image and you are good to go to use that Docker image as your local CodeBuild service. I cloned the demo repo and ran the local CodeBuild and it succesfully build the demo app and created the artifact into my local artifact directory (you have to create the directory, of course - see instructions in the link above).
+When I was experimenting with the manually created CodePipeline / CodeBuild I was debugging the CodeBuild's Build spec. The development cycle was a bit annoying - edit build spec, push to CodeCommit, start CodePipeline, wait that pipeline tells CodeBuild to build the project and check the results. Therefore I googled if there is some way to debug the build spec with a faster development cycle. I found this: [Announcing Local Build Support for AWS CodeBuild](https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/). It was pretty cool. You just had to clone the the local codebuild repo, build the Docker image and you are good to go to use that Docker image as your local CodeBuild service. I cloned the demo repo and ran the local CodeBuild and it succesfully build the demo app and created the artifact into my local artifact directory (you have to create the directory, of course - see instructions in the link above).
 
 Instructions:
 - Go to project [java-simple-rest-demo-app](https://github.com/tieto-pc/java-simple-rest-demo-app).
 - Download the codebuild_build.sh file: 
     - See: https://aws.amazon.com/blogs/devops/announcing-local-build-support-for-aws-codebuild/
     - Download the script: ```wget https://raw.githubusercontent.com/aws/aws-codebuild-docker-images/master/local_builds/codebuild_build.sh```
-- The codebuild_build.sh is needed by script [run-local-codebuild.sh](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/run-local-codebuild.sh) (local CodeBuild tool).
-- You need to create a build specification file for the CodeBuild: [buildspec_build_and_test.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/buildspec_build_and_test.yml) .
+- The codebuild_build.sh is needed by script [run-local-codebuild-build-and-test.sh](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/run-local-codebuild-build-and-test.sh).
+- You need to create a build specification file for the CodeBuild: [buildspec_build_and_test.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/codebuild/buildspec_build_and_test.yml) .
 - You need to create the build environment. I used [Ubuntu 18 Standard build environment Docker image](https://github.com/aws/aws-codebuild-docker-images/tree/master/ubuntu/standard/1.0). Build it, e.g. ```docker build -t aws/codebuild/ubuntu:18 . ```.
-- Once everything is ready try to run the local CodeBuild: ```./run-local-codebuild.sh```
+- Once everything is ready try to run the local CodeBuild: ```./run-local-codebuild-build-and-test.sh```
 
 After the AWS provided demo I tried the local CodeBuild tool with my own project [java-simple-rest-demo-app
-](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm about to use as a demo app when demonstrating the AWS PipeLine tools. I had to debug the build specification a bit but finally I got it working. After the build was ok in local CodeBuild I verified that it works the same way in the real AWS CodeBuild service.
+](https://github.com/tieto-pc/java-simple-rest-demo-app) which I'm using as a demo app when demonstrating the AWS DevOps tools in this project. I had to debug the build specification a bit but finally I got it working. After the build was ok in local CodeBuild I verified that it works the same way in the real AWS CodeBuild service.
 
 
 # S3 Buckets and CloudWatch Logs
@@ -104,30 +108,31 @@ I created three S3 buckets for the DevOps environment:
 I also created A CloudWatch Log group but I later realized that Terraform does not support at the moment the CloudWatch logsConfig configuration in CodeBuild projects - I left the log S3 and CloudWatch Log group to the Terraform modules anyway - maybe the support will come in the near future and I update the logsConfig to the CodeBuild then.
 
 
-# Service Role
-
-I created a Service role for CodeBuild. The role is injected to the CodeBuild module.
-
 
 # CodeBuild
 
-The CodeBuild module has two projects:
+The [codebuild terraform module](modules/codebuild) has two projects:
 
-1. Build and test project which uses CodeCommit repo as the source and then calls the Java project's buildspec.yml build specification file to run the build and test process.
+1. **Build and test Java project.** The project uses CodeCommit repo as the source and then calls the Java project's buildspec.yml build specification file to run the build and test process: [buildspec_build_and_test.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/codebuild/buildspec_build_and_test.yml). CodePipeline pushes the created application jar into S3 artifacts bucket.
 
-2. Docker Image project which creates the Docker image and bakes into it the application jar that the previous CodeBuild project created.
+2. **Build Docker Image project.** The project fetches the application jar from the S3 bucket and bakes the application jar into a Docker image. This project uses build specification: [buildspec_build_docker_image.yml](https://github.com/tieto-pc/java-simple-rest-demo-app/blob/master/codebuild/buildspec_build_docker_image.yml).
 
+I could have aggregated both steps into the same CodeBuild project (would have been more efficient) but I wanted to demonstrate how to create modular CodeBuild projects that are orchestrated by CodePipeline. The current design has some advantages, though: it is more modular therefore making the development and debugging both projects independent from each other.
+
+I added into the same Terraform module also the service IAM role and and policy for CodeBuild - basically allowing CodeBuild to interact with S3 bucket (upload/download application jar) and ECR (push Docker image).
 
 
 # CodePipeline
 
-The CodePipeline has three stages:
+The [codepipeline terraform module](modules/codepipeline) has three stages:
 
 1. Source stage which pulls sources from CodeCommit.
 
-2. Build and test stage which builds the app jar (using CodeBuild build and test project) and then uploads the application jar into S3 artifact bucket.
+2. Build and test stage which builds the app jar (using CodeBuild build and test project, action 1) and then uploads the application jar into S3 artifact bucket (action 2).
 
 3. Docker image stage which bakes the Docker image (using CodeBuild Docker image project).
+
+The CodePipeline project is therefore an orchestrator which uses CodeBuild projects (providing the actual building instructions) to define the steps we have to walk through to get a new deployment. The deployment in this context means the new Docker image in ECR ready for someone else to take actions - the new Docker image could start a new CodePipeline project which actually deploys the new Docker image e.g. into the automatic test environment for end-to-end testing.
 
 
 # Demonstration Manuscript
@@ -151,5 +156,6 @@ The CodePipeline has three stages:
 ```
 8. Push the Java app git master branch to the new CodeCommit repository: git push codecommit master.
 9. Check in AWS CodeCommit Dashboard that you see the code there.
+10. If everything went smoothly you should see the CodePipeline project triggered by the new commit. You might need to release the CodePipeline project the first time and then create a test commit to trigger the CodePipeline.
 
 
