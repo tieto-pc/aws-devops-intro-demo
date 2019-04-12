@@ -130,11 +130,11 @@ I added into the same Terraform module also the service IAM role and and policy 
 
 The [codepipeline terraform module](modules/codepipeline) has three stages:
 
-1. Source stage which pulls sources from CodeCommit.
+1. **Source stage** which pulls sources from CodeCommit.
 
-2. Build and test stage which builds the app jar (using CodeBuild build and test project, action 1) and then uploads the application jar into S3 artifact bucket (action 2).
+2. **Build and test stage** which builds the app jar (using CodeBuild build and test project, action 1) and then uploads the application jar into S3 artifact bucket (action 2).
 
-3. Docker image stage which bakes the Docker image (using CodeBuild Docker image project).
+3. **Docker image stage** which bakes the Docker image (using CodeBuild Docker image project).
 
 The CodePipeline project is therefore an orchestrator which uses CodeBuild projects (providing the actual building instructions) to define the steps we have to walk through to get a new deployment. The deployment in this context means the new Docker image in ECR ready for someone else to take actions - the new Docker image could e.g. start a new CodePipeline project which actually deploys the new Docker image e.g. into the automatic test environment for end-to-end testing.
 
